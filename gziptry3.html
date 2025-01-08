@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gzip Compression Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            margin-right: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Online Gzip Compression Tool</h1>
+<p>Enter text in the first box and click "Gzip Compress" or "Gzip Decompress" to see the results.</p>
+
+<textarea id="sourceText" placeholder="Enter text here..."></textarea>
+<div>
+    <button class="btn-primary" onclick="compressText()">Gzip Compress</button>
+    <button class="btn-primary" onclick="decompressText()">Gzip Decompress</button>
+    <button class="btn-secondary" onclick="clearText()">Clear</button>
+</div>
+<textarea id="resultText" placeholder="Results will appear here..." readonly></textarea>
+
+<script>
+    function compressText() {
+        const input = document.getElementById('sourceText').value;
+        if (!input) {
+            alert('Please enter some text to compress.');
+            return;
+        }
+        try {
+            const compressed = pako.gzip(input, { to: 'string' });
+            const base64Compressed = btoa(compressed);
+            document.getElementById('resultText').value = base64Compressed;
+        } catch (err) {
+            alert('Error during compression: ' + err.message);
+        }
+    }
+
+    function decompressText() {
+        const input = document.getElementById('sourceText').value;
+        if (!input) {
+            alert('Please enter some Base64 encoded compressed text to decompress.');
+            return;
+        }
+        try {
+            const binaryString = atob(input);
+            const decompressed = pako.ungzip(binaryString, { to: 'string' });
+            document.getElementById('resultText').value = decompressed;
+        } catch (err) {
+            alert('Error during decompression: ' + err.message);
+        }
+    }
+
+    function clearText() {
+        document.getElementById('sourceText').value = '';
+        document.getElementById('resultText').value = '';
+    }
+</script>
+
+</body>
+</html>

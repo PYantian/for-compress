@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compression Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+    <h1>Compression and Decompression Demo</h1>
+
+    <div>
+        <label for="source_textarea">Source Text:</label><br>
+        <textarea id="source_textarea" rows="6" cols="60"></textarea>
+    </div>
+
+    <div>
+        <label for="target_textarea">Target Text:</label><br>
+        <textarea id="target_textarea" rows="6" cols="60" readonly></textarea>
+    </div>
+
+    <div>
+        <button onclick="doencode()">Compress</button>
+        <button onclick="dodecode()">Decompress</button>
+        <button onclick="do_demo()">Fill Demo Text</button>
+        <button onclick="do_clear()">Clear</button>
+    </div>
+
+    <script>
+        function doencode() {
+            var str = document.getElementById('source_textarea').value;
+            str = new zip().zipStr(str);
+            document.getElementById('target_textarea').value = str;
+        }
+
+        function dodecode() {
+            var encodedData = document.getElementById('source_textarea').value;
+            var decodedData = new zip().unzipStr(encodedData);
+            document.getElementById('target_textarea').value = decodedData;
+        }
+
+        class zip {
+            unzipStr(str) {
+                let Utf8ArrayToStr = function (array) {
+                    var out = "", i = 0, len = array.length, char1, char2, char3, char4;
+                    while (i < len) {
+                        char1 = array[i++];
+                        if (char1 >> 4 <= 7) {
+                            out += String.fromCharCode(char1);
+                        } else if (char1 >> 4 == 12 || char1 >> 4 == 13) {
+                            char2 = array[i++];
+                            out += String.fromCharCode(((char1 & 0x1F) << 6) | (char2 & 0x3F));
+                        } else if (char1 >> 4 == 14) {
+                            char2 = array[i++];
+                            char3 = array[i++];
+                            char4 = ((char1 & 0x0F) << 12) | ((char2 & 0x3F) << 6);
+                            out += String.fromCharCode(char4 | ((char3 & 0x3F) << 0));
+                        }
+                    }
+                    return out;
+                };
+                try {
+                    var binaryString = window.atob(str);
+                    var binaryLen = binaryString.length;
+                    var bytes = new Uint8Array(binaryLen);
+                    for (var i = 0; i < binaryLen; i++) {
+                        var ascii = binaryString.charCodeAt(i);
+                        bytes[i] = ascii;
+                    }
+                    var byteArray = new Uint8Array(bytes);
+                    byteArray = pako.ungzip(bytes);
+                    return Utf8ArrayToStr(byteArray);
+                } catch (e) {
+                    console.log(e);
+                    return str;
+                }
+            }
+
+            zipStr(str) {
+                var binaryString = pako.gzip(str, { to: 'string' });
+                return btoa(binaryString);
+            }
+        }
+
+        function do_demo() {
+            document.getElementById("source_textarea").value = '1234567890';
+        }
+
+        function do_clear() {
+            document.getElementById("source_textarea").value = '';
+            document.getElementById("target_textarea").value = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gzip Compression Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js"></script>
+</head>
+<body>
+<h1>Gzip Compression API</h1>
+<script>
+    const funcs = {
+        '/compress': (data) => btoa(pako.gzip(data, { to: 'string' })),
+        '/decompress': (data) => pako.ungzip(atob(data), { to: 'string' }),
+    };
+
+    self.addEventListener('message', (event) => {
+        const { endpoint, payload } = event.data;
+        if (funcs[endpoint]) {
+            const result = funcs[endpoint](payload);
+            self.postMessage({ result });
+        } else {
+            self.postMessage({ error: 'Invalid endpoint' });
+        }
+    });
+</script>
+</body>
+</html>
