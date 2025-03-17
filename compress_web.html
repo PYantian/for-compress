@@ -6,84 +6,152 @@
     <title>Gzip Compression Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js"></script>
     <style>
+        /* CSS Variables for Theme Management */
+        :root {
+            --background-color: #ffffff;
+            --text-color: #333333;
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --border-color: #dddddd;
+            --hover-color: #0056b3;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --background-color: #1e1e1e;
+            --text-color: #f1f1f1;
+            --primary-color: #0d6efd;
+            --secondary-color: #5a6268;
+            --border-color: #444444;
+            --hover-color: #0b5ed7;
+            --shadow-color: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
+
         .container {
             width: 90%;
             max-width: 800px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin: 50px auto;
+            background-color: var(--background-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
+
         h1 {
             margin-top: 0;
-            font-size: 24px;
-            color: #007bff;
+            font-size: 28px;
+            color: var(--primary-color);
             text-align: center;
         }
+
         p {
-            font-size: 14px;
-            color: #666;
+            font-size: 16px;
+            color: var(--text-color);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
+
         textarea {
             width: 100%;
             height: 150px;
-            margin-bottom: 15px;
-            padding: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
             font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             resize: vertical;
             box-sizing: border-box;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
         }
+
         textarea:focus {
-            border-color: #007bff;
+            border-color: var(--primary-color);
             outline: none;
         }
+
         .buttons {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
+
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             flex: 1;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s, transform 0.2s;
         }
+
         .btn-primary {
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
         }
+
         .btn-primary:hover {
-            background-color: #0056b3;
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
         }
+
         .btn-secondary {
-            background-color: #6c757d;
+            background-color: var(--secondary-color);
             color: white;
         }
+
         .btn-secondary:hover {
             background-color: #5a6268;
+            transform: translateY(-2px);
         }
+
         #resultText {
-            background-color: #f1f1f1;
-            color: #333;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--hover-color);
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid var(--primary-color);
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -99,40 +167,76 @@
         <button class="btn-primary" onclick="decompressText()">Gzip Decompress</button>
         <button class="btn-secondary" onclick="clearText()">Clear</button>
     </div>
+    <div class="loading-spinner" id="loadingSpinner"></div>
     <textarea id="resultText" placeholder="Results will appear here..." readonly></textarea>
 </div>
 
+<div class="theme-toggle" onclick="toggleTheme()">Toggle Theme</div>
+
 <script>
+    // Theme Toggle
+    function toggleTheme() {
+        const body = document.body;
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+        }
+    }
+
+    // Show Loading Spinner
+    function showLoading() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+    }
+
+    // Hide Loading Spinner
+    function hideLoading() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    // Compress Text
     function compressText() {
         const input = document.getElementById('sourceText').value;
         if (!input) {
             alert('Please enter some text to compress.');
             return;
         }
-        try {
-            const compressed = pako.gzip(input, { to: 'string' });
-            const base64Compressed = btoa(compressed);
-            document.getElementById('resultText').value = base64Compressed;
-        } catch (err) {
-            alert('Error during compression: ' + err.message);
-        }
+        showLoading();
+        setTimeout(() => {
+            try {
+                const compressed = pako.gzip(input, { to: 'string' });
+                const base64Compressed = btoa(compressed);
+                document.getElementById('resultText').value = base64Compressed;
+            } catch (err) {
+                alert('Error during compression: ' + err.message);
+            } finally {
+                hideLoading();
+            }
+        }, 500); // Simulate delay for better UX
     }
 
+    // Decompress Text
     function decompressText() {
         const input = document.getElementById('sourceText').value;
         if (!input) {
             alert('Please enter some Base64 encoded compressed text to decompress.');
             return;
         }
-        try {
-            const binaryString = atob(input);
-            const decompressed = pako.ungzip(binaryString, { to: 'string' });
-            document.getElementById('resultText').value = decompressed;
-        } catch (err) {
-            alert('Error during decompression: ' + err.message);
-        }
+        showLoading();
+        setTimeout(() => {
+            try {
+                const binaryString = atob(input);
+                const decompressed = pako.ungzip(binaryString, { to: 'string' });
+                document.getElementById('resultText').value = decompressed;
+            } catch (err) {
+                alert('Error during decompression: ' + err.message);
+            } finally {
+                hideLoading();
+            }
+        }, 500); // Simulate delay for better UX
     }
 
+    // Clear Text
     function clearText() {
         document.getElementById('sourceText').value = '';
         document.getElementById('resultText').value = '';
